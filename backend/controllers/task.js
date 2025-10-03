@@ -36,7 +36,6 @@ export const createTask = async (req, res) => {
 
     project.tasks.push(newTask._id);
     await project.save();
-
     return res.status(201).json({
       message: "Task created successfully",
       task: newTask,

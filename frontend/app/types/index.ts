@@ -87,11 +87,11 @@ export interface Task {
   project: Project;
   status: TaskStatus;
   priority: TaskPriority;
-  assignees?: User[] | string[];
-  watchers?: User[] | string[];
+  assignees: User[];
+  watchers?: User[];
   dueDate?: Date;
   subtasks: Subtask[];
-  comments: string[]; // list comment IDs
+  comments: string[]; 
   attachments: Attachment[];
   createdBy: User;
   isArchived: boolean;

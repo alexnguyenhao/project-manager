@@ -1,5 +1,12 @@
 import { Progress } from "@/components/ui/progress";
-import { Loader } from "lucide-react";
+import {
+  AlertCircle,
+  Calendar,
+  CheckCircle2,
+  Loader,
+  PlayCircle,
+  User,
+} from "lucide-react";
 import { TaskStatus, type Project, type Task } from "@/types";
 import { cn } from "@/lib/utils";
 import { getProjectProgress, getTaskStatusColor } from "@/lib";
@@ -13,6 +20,8 @@ import { UseProjectQuery } from "@/hooks/use-project";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getPriorityColor } from "@/lib/index";
+import { Avatar } from "@radix-ui/react-avatar";
+import { AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const ProjectDetails = () => {
   const { projectId, workspaceId } = useParams<{
@@ -185,7 +194,7 @@ export const TaskColumn = ({
       className={
         isFullWidth
           ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
-          : "flex-1 min-w-[250px]"
+          : ""
       }
     >
       <div className="flex justify-between items-center mb-2 col-span-full">
@@ -193,7 +202,7 @@ export const TaskColumn = ({
         <span className="text-xs text-muted-foreground">{filtered.length}</span>
       </div>
 
-      <div className={isFullWidth ? "contents" : "space-y-3"}>
+      <div className={isFullWidth ? "contents" : "space-y-2"}>
         {filtered.length > 0 ? (
           filtered.map((task) => (
             <TaskCard
@@ -220,23 +229,111 @@ interface TaskCardProps {
 const TaskCard = ({ task, onClick }: TaskCardProps) => {
   return (
     <Card
-      className="cursor-pointer hover:shadow-md transition-all duration-300 hover:translate-y-1"
+      className="cursor-pointer hover:shadow-md transition-all duration-300 hover:-translate-y-0.5 rounded-xl"
       onClick={onClick}
     >
+      {/* Header */}
       <CardHeader className="flex flex-row justify-between items-center">
-        <CardTitle className="text-sm font-medium">{task.title}</CardTitle>
-        <div className="flex items-center gap-2">
-          {/* Priority Badge */}
-          {task.priority && (
-            <Badge
-              variant="outline"
-              className={`text-xs ${getPriorityColor(task.priority)}`}
+        <Badge
+          variant="outline"
+          className={cn("text-xs px-2 py-0.5", getPriorityColor(task.priority))}
+        >
+          {task.priority}
+        </Badge>
+
+        <div className="flex gap-1">
+          {task.status !== TaskStatus.TODO && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-7"
+              onClick={(e) => {
+                e.stopPropagation();
+                console.log("mark as To Do");
+              }}
+              title="Mark as To Do"
             >
-              {task.priority}
-            </Badge>
+              <AlertCircle className="size-4 text-gray-500" />
+            </Button>
+          )}
+
+          {task.status !== TaskStatus.IN_PROGRESS && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-7"
+              onClick={(e) => {
+                e.stopPropagation();
+                console.log("mark as In Progress");
+              }}
+              title="Mark as In Progress"
+            >
+              <PlayCircle className="size-4 text-yellow-500" />
+            </Button>
+          )}
+
+          {task.status !== TaskStatus.DONE && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-7"
+              onClick={(e) => {
+                e.stopPropagation();
+                console.log("mark as Done");
+              }}
+              title="Mark as Done"
+            >
+              <CheckCircle2 className="size-4 text-green-600" />
+            </Button>
           )}
         </div>
       </CardHeader>
+
+      {/* Body */}
+      <CardContent className=" space-y-2">
+        <h4 className="font-semibold text-sm">{task.title}</h4>
+
+        {task.description && (
+          <p className="text-xs text-muted-foreground line-clamp-2">
+            {task.description}
+          </p>
+        )}
+        <div className="flex items-center justify-between text-sm">
+          <div className="flex items-center gap-2">
+            {task.assignees && task.assignees.length > 0 && (
+              <div className="flex -space-x-2 pt-1">
+                {task.assignees.slice(0, 5).map((member: any) => (
+                  <Avatar
+                    key={member._id}
+                    className="relative size-7 bg-gray-700 rounded-full border-2 border-background overflow-hidden"
+                    title={member.name}
+                  >
+                    <AvatarImage src={member.profilePicture} />
+                    <AvatarFallback>
+                      {member.name ? member.name.charAt(0) : "?"}
+                    </AvatarFallback>
+                  </Avatar>
+                ))}
+                {task.assignees.length > 5 && (
+                  <span>+{task.assignees.length - 5}</span>
+                )}
+              </div>
+            )}
+          </div>
+          {task.dueDate && (
+            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+              <Calendar className="size-3" />
+              {new Date(task.dueDate).toLocaleDateString()}
+            </div>
+          )}
+        </div>
+        {task.subtasks && task.subtasks.length > 0 && (
+          <div className="mt-2 text-xs text-muted-foreground">
+            {task.subtasks.filter((subtask) => subtask.completed).length}/{" "}
+            {task.subtasks.length} subtasks
+          </div>
+        )}
+      </CardContent>
     </Card>
   );
 };
